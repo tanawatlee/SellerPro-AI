@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SellerPro AI - ผู้ช่วยร้านค้าออนไลน์</title>
+    
+    <!-- 1. Import ฟอนต์ภาษาไทยสวยๆ (เช่น Noto Sans Thai หรือ Sarabun) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- 2. Import Tailwind CSS (แบบ CDN เพื่อให้แสดงผลได้ทันทีโดยไม่ต้อง Config เยอะ) -->
+    <!-- หมายเหตุ: สำหรับ Production จริง แนะนำให้ติดตั้งผ่าน npm เพื่อประสิทธิภาพที่ดีกว่า -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- ตั้งค่า Tailwind ให้ใช้ฟอนต์ไทยเป็นค่าเริ่มต้น -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Noto Sans Thai"', 'sans-serif'],
+            },
+          }
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <!-- จุดที่ React จะนำ App ไปแสดงผล -->
+    <div id="root"></div>
+    
+    <!-- Script หลักของโปรเจกต์ (ปรับ path ตามโครงสร้างของคุณ เช่น /src/main.jsx) -->
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
