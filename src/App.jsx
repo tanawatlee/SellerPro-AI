@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Calculator, Sparkles, TrendingUp, Copy, Check, Info, DollarSign, Package, AlertCircle, ShoppingBag, Landmark, BrainCircuit, Loader2, Save, RotateCcw, Swords, Target, Megaphone, Users, Share2, LayoutList, ArrowRightLeft, Percent, Calendar, BarChart3, Plus, Trash2, Tag, MessageSquare, Send, MessageCircle, Star, ThumbsUp, Truck, Image as ImageIcon, Download, Upload, X, Wand2, Palette, Camera, Lock, Type, Layout, Video, PlayCircle, Settings, Key } from 'lucide-react';
+import { Calculator, Sparkles, TrendingUp, Copy, Check, Info, DollarSign, Package, AlertCircle, ShoppingBag, Landmark, BrainCircuit, Loader2, Save, RotateCcw, Swords, Target, Megaphone, Users, Share2, LayoutList, ArrowRightLeft, Percent, Calendar, BarChart3, Plus, Trash2, Tag, MessageSquare, Send, MessageCircle, Star, ThumbsUp, Truck, Image as ImageIcon, Download, Upload, X, Wand2, Palette, Camera, Lock, Type, Video, PlayCircle, Settings, Key, PieChart, TrendingDown } from 'lucide-react';
 
 // --- Gemini API Helpers (Updated to accept Key) ---
 
@@ -58,10 +58,7 @@ const callGeminiImage = async (prompt, userKey) => {
 const callGeminiImageToImage = async (prompt, base64Images, userKey) => {
   if (!userKey) return null;
   try {
-    // Construct parts: Text prompt + All images
     const parts = [{ text: prompt }];
-
-    // Ensure it's an array
     const images = Array.isArray(base64Images) ? base64Images : [base64Images];
 
     images.forEach(img => {
@@ -283,9 +280,9 @@ const PriceCalculator = () => {
   );
 };
 
-// --- Feature 2: AI Content Generator (Updated with apiKey prop) ---
+// --- Feature 2: AI Content Generator (Pro Mode) ---
 
-const ContentGenerator = ({ apiKey }) => {
+const ContentGenerator = ({ apiKey, onConfigKey }) => {
   const [productName, setProductName] = useState('');
   const [category, setCategory] = useState('');
   const [features, setFeatures] = useState('');
@@ -358,7 +355,7 @@ const ContentGenerator = ({ apiKey }) => {
         <div><label className="block text-sm font-medium text-slate-700 mb-1">จุดเด่น/คีย์เวิร์ด</label><textarea className="w-full p-3 bg-slate-50 border rounded-lg h-24" value={features} onChange={(e) => setFeatures(e.target.value)}></textarea></div>
         {contentType === 'listing' && <div className="bg-slate-50 p-3 rounded-lg border border-slate-200"><label className="block text-sm font-medium text-slate-700 mb-1"><Save size={14} /> ข้อมูลร้านค้า (Auto-Save)</label><textarea className="w-full p-2 bg-white border rounded-lg h-20 text-sm" value={shopInfo} onChange={(e) => setShopInfo(e.target.value)}></textarea></div>}
         <Button onClick={generateContent} disabled={isGenerating || !productName} className={`w-full bg-gradient-to-r ${contentType === 'listing' ? 'from-purple-600 to-indigo-600' : 'from-pink-500 to-orange-500'}`}>{isGenerating ? 'กำลังสร้าง...' : '✨ สร้างคอนเทนต์'}</Button>
-        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        {!apiKey && <button onClick={onConfigKey} className="text-xs text-red-500 mt-1 w-full text-center hover:underline">*กรุณาตั้งค่า API Key (คลิก)</button>}
       </div>
       <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 h-full max-h-[600px] overflow-y-auto min-h-[300px]">
         {generatedContent ? (
@@ -381,7 +378,7 @@ const ContentGenerator = ({ apiKey }) => {
 
 // --- Feature 3: Ad Optimizer ---
 
-const AdOptimizer = ({ apiKey }) => {
+const AdOptimizer = ({ apiKey, onConfigKey }) => {
   const [productPrice, setProductPrice] = useState('');
   const [profitPerPcs, setProfitPerPcs] = useState('');
   const [conversionRate, setConversionRate] = useState(2);
@@ -393,7 +390,8 @@ const AdOptimizer = ({ apiKey }) => {
   const breakevenROAS = parseFloat(productPrice) / parseFloat(profitPerPcs);
   
   const analyzeWithAI = async () => {
-    if (!productPrice || !profitPerPcs || !apiKey) return;
+    if (!productPrice || !profitPerPcs) return;
+    if (!apiKey) { onConfigKey(); return; }
     setIsAnalyzing(true);
     const goalMap = { profit: 'เน้นกำไร (ROI)', sales: 'เน้นยอดขาย (Volume)', awareness: 'เน้นการมองเห็น' };
     const prompt = `Analyze Ads Strategy. Product Price: ${productPrice}, Profit/unit: ${profitPerPcs}, Target CR: ${conversionRate}%, Goal: ${goalMap[adGoal]}. Provide 1. Risk Analysis 2. Bidding Strategy 3. Budget Advice 4. Special Tip. In Thai.`;
@@ -416,7 +414,7 @@ const AdOptimizer = ({ apiKey }) => {
                 <div><label className="block text-sm font-medium text-slate-700 mb-1">เป้าหมาย</label><select value={adGoal} onChange={(e) => setAdGoal(e.target.value)} className="w-full p-2.5 bg-slate-50 border rounded-lg"><option value="profit">💰 เน้นกำไร</option><option value="sales">📈 เน้นยอดขาย</option><option value="awareness">👀 เน้นคนเห็น</option></select></div>
              </div>
              <Button onClick={analyzeWithAI} disabled={isAnalyzing || !productPrice || !profitPerPcs} className="w-full bg-gradient-to-r from-orange-500 to-red-500">{isAnalyzing ? 'AI กำลังคิด...' : 'ขอคำแนะนำจาก AI'}</Button>
-             {!apiKey && <p className="text-xs text-red-500 mt-1">*ต้องใส่ API Key ก่อน</p>}
+             {!apiKey && <button onClick={onConfigKey} className="text-xs text-red-500 mt-1 w-full text-center hover:underline">*กรุณาตั้งค่า API Key (คลิก)</button>}
           </div>
         </div>
         <div className="space-y-4">
@@ -430,20 +428,25 @@ const AdOptimizer = ({ apiKey }) => {
   );
 };
 
-// --- Feature 4: Promo Planner (With Chat) ---
+// --- Feature 4: Promo Planner (Professional & Strategic) ---
 
-const PromoPlanner = ({ apiKey }) => {
+const PromoPlanner = ({ apiKey, onConfigKey }) => {
   const [promoItems, setPromoItems] = useState([]);
   const [newItemName, setNewItemName] = useState('');
   const [newItemCost, setNewItemCost] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
+  
+  // Strategic Inputs
   const [targetTotalProfit, setTargetTotalProfit] = useState('');
   const [duration, setDuration] = useState('7');
+  const [budget, setBudget] = useState('');
+  const [strategy, setStrategy] = useState('profit'); // profit, clearance, new_launch
   const [platform, setPlatform] = useState('Shopee');
+  
   const [aiPlan, setAiPlan] = useState(null);
   const [isPlanning, setIsPlanning] = useState(false);
   const [activeRightTab, setActiveRightTab] = useState('plan'); 
-  const [chatMessages, setChatMessages] = useState([{ role: 'ai', text: 'สวัสดีครับ ผมช่วยวางแผนโปรโมชั่นได้นะ' }]);
+  const [chatMessages, setChatMessages] = useState([{ role: 'ai', text: 'สวัสดีครับ ผมช่วยวางแผนโปรโมชั่นระดับกลยุทธ์ได้ครับ ลองเพิ่มสินค้าและบอกเป้าหมายมาได้เลย' }]);
   const [chatInput, setChatInput] = useState('');
   const [isChatting, setIsChatting] = useState(false);
   const chatEndRef = useRef(null);
@@ -458,10 +461,61 @@ const PromoPlanner = ({ apiKey }) => {
   };
 
   const generatePlanWithAI = async () => {
-    if (promoItems.length === 0 || !targetTotalProfit || !apiKey) return;
+    if (promoItems.length === 0 || !targetTotalProfit) return;
+    if (!apiKey) { onConfigKey(); return; }
     setIsPlanning(true);
-    const itemsContext = promoItems.map(item => `- ${item.name}: Cost ${item.cost}, Price ${item.price}`).join('\n');
-    const prompt = `AI Campaign Manager. Platform: ${platform}. Goal Profit: ${targetTotalProfit} in ${duration} days. Items: ${itemsContext}. Plan discount strategy & sales volume. JSON Response: { "items": [{ "name": "...", "discountPercent": 10, "promoPrice": 100, "targetUnits": 50, "reason": "..." }], "summary": { "totalRevenue": 1000, "estimatedTotalProfit": 500, "strategyNote": "..." } }`;
+
+    const itemsContext = promoItems.map(item => 
+        `- ${item.name}: Cost ${item.cost}, Normal Price ${item.price}, Margin: ${((item.price - item.cost)/item.price * 100).toFixed(1)}%`
+    ).join('\n');
+
+    const strategies = {
+        'profit': 'เน้นกำไรสูงสุด (Profit Maximization)',
+        'clearance': 'ล้างสต็อก (Inventory Clearance)',
+        'new_launch': 'เปิดตัวสินค้าใหม่/ดึงลูกค้า (Traffic Generation)'
+    };
+
+    const prompt = `
+      Act as a Senior Marketing Analyst & Strategist.
+      
+      Campaign Context:
+      - Platform: ${platform}
+      - Duration: ${duration} Days
+      - Goal: Net Profit Target of ${targetTotalProfit} THB
+      - Strategy: ${strategies[strategy]}
+      - Marketing Budget: ${budget || '0'} THB
+      
+      Product Portfolio:
+      ${itemsContext}
+      
+      Task:
+      1. Analyze the portfolio to find "Hero Products" (Traffic Drivers) vs "Profit Generators".
+      2. Suggest optimal Discount % for each item based on the selected Strategy.
+      3. Forecast Sales Units required to meet the ${targetTotalProfit} profit goal (considering the budget as cost).
+      
+      Return strictly JSON format:
+      {
+        "executive_summary": "Short strategic overview...",
+        "kpi_forecast": {
+            "total_revenue": 0,
+            "total_profit": 0,
+            "roi": 0
+        },
+        "items": [
+          { 
+            "name": "...", 
+            "role": "Hero / Profit / Standard",
+            "recommended_discount": 10, 
+            "promo_price": 100, 
+            "estimated_margin_percent": 20,
+            "target_units_total": 50, 
+            "target_units_daily": 7,
+            "reason": "..." 
+          }
+        ]
+      }
+    `;
+
     try {
         const textResult = await callGeminiText(prompt, apiKey);
         if (textResult) setAiPlan(JSON.parse(textResult.replace(/```json|```/g, '').trim()));
@@ -469,12 +523,13 @@ const PromoPlanner = ({ apiKey }) => {
   };
 
   const handleSendChat = async () => {
-    if (!chatInput.trim() || !apiKey) return;
+    if (!chatInput.trim()) return;
+    if (!apiKey) { onConfigKey(); return; }
     const userText = chatInput;
     setChatMessages(prev => [...prev, { role: 'user', text: userText }]);
     setChatInput('');
     setIsChatting(true);
-    const prompt = `Consultant for Ecommerce. User asked: ${userText}. Context: ${promoItems.length} items. Answer in Thai.`;
+    const prompt = `Act as a Marketing Consultant. User asked: "${userText}". Context: ${promoItems.length} items, Strategy: ${strategy}. Answer in Thai, professional but easy to understand.`;
     try {
       const response = await callGeminiText(prompt, apiKey);
       setChatMessages(prev => [...prev, { role: 'ai', text: response }]);
@@ -484,33 +539,100 @@ const PromoPlanner = ({ apiKey }) => {
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2"><Percent className="w-5 h-5 text-pink-500" /> จัดพอร์ตสินค้า & วางแผนโปรฯ</h3>
+        <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2"><Percent className="w-5 h-5 text-pink-500" /> จัดพอร์ตสินค้า & วางแผนโปรฯ (Strategic Mode)</h3>
+        
+        {/* Item Input */}
         <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
             <div className="grid grid-cols-12 gap-2 mb-2">
-                <div className="col-span-5"><input className="w-full p-2 text-sm border rounded-lg" placeholder="สินค้า" value={newItemName} onChange={(e) => setNewItemName(e.target.value)}/></div>
+                <div className="col-span-5"><input className="w-full p-2 text-sm border rounded-lg" placeholder="ชื่อสินค้า" value={newItemName} onChange={(e) => setNewItemName(e.target.value)}/></div>
                 <div className="col-span-3"><input type="number" className="w-full p-2 text-sm border rounded-lg" placeholder="ทุน" value={newItemCost} onChange={(e) => setNewItemCost(e.target.value)}/></div>
-                <div className="col-span-3"><input type="number" className="w-full p-2 text-sm border rounded-lg" placeholder="ขาย" value={newItemPrice} onChange={(e) => setNewItemPrice(e.target.value)}/></div>
+                <div className="col-span-3"><input type="number" className="w-full p-2 text-sm border rounded-lg" placeholder="ขายปกติ" value={newItemPrice} onChange={(e) => setNewItemPrice(e.target.value)}/></div>
                 <div className="col-span-1"><button onClick={addItem} className="bg-blue-600 text-white p-2 rounded-lg w-full"><Plus size={16} /></button></div>
             </div>
-            <div className="space-y-2 max-h-40 overflow-y-auto">{promoItems.map((item) => (<div key={item.id} className="flex justify-between p-2 bg-white rounded border text-sm"><span>{item.name}</span><button onClick={() => setPromoItems(prev => prev.filter(i => i.id !== item.id))} className="text-red-500"><Trash2 size={14}/></button></div>))}</div>
+            <div className="space-y-2 max-h-40 overflow-y-auto">{promoItems.map((item) => (<div key={item.id} className="flex justify-between p-2 bg-white rounded border text-sm"><span>{item.name}</span><span className="text-slate-400 text-xs">Margin: {((item.price-item.cost)/item.price*100).toFixed(0)}%</span><button onClick={() => setPromoItems(prev => prev.filter(i => i.id !== item.id))} className="text-red-500"><Trash2 size={14}/></button></div>))}</div>
         </div>
-        <div className="bg-pink-50 p-4 rounded-lg border border-pink-100">
-           <div className="grid grid-cols-2 gap-4 mb-3"><InputGroup label="กำไรรวมที่ต้องการ" prefix="฿" value={targetTotalProfit} onChange={setTargetTotalProfit} /><InputGroup label="ระยะเวลา (วัน)" suffix="วัน" value={duration} onChange={setDuration} /></div>
+
+        {/* Strategy Controls */}
+        <div className="bg-pink-50 p-4 rounded-lg border border-pink-100 space-y-3">
+           <div className="grid grid-cols-2 gap-3">
+               <InputGroup label="เป้ากำไรรวม (บาท)" prefix="฿" value={targetTotalProfit} onChange={setTargetTotalProfit} />
+               <InputGroup label="งบการตลาด (Ad Budget)" prefix="฿" value={budget} onChange={setBudget} />
+           </div>
+           <div className="grid grid-cols-2 gap-3">
+                <InputGroup label="ระยะเวลา (วัน)" suffix="วัน" value={duration} onChange={setDuration} />
+                <div>
+                    <label className="block text-sm font-medium text-pink-800 mb-1">กลยุทธ์ (Strategy)</label>
+                    <select value={strategy} onChange={(e) => setStrategy(e.target.value)} className="w-full p-2.5 text-sm border rounded-lg">
+                        <option value="profit">💰 เน้นกำไร (Profit Max)</option>
+                        <option value="clearance">📦 ล้างสต็อก (Clearance)</option>
+                        <option value="new_launch">🚀 เปิดตัว/ดึงคน (Traffic)</option>
+                    </select>
+                </div>
+           </div>
         </div>
-        <Button onClick={generatePlanWithAI} disabled={isPlanning || promoItems.length === 0} className="w-full bg-pink-600 text-white">{isPlanning ? 'Thinking...' : 'ให้ AI ช่วยจัดโปรฯ'}</Button>
-        {!apiKey && <p className="text-xs text-red-500 mt-1 text-center">*ต้องใส่ API Key ก่อน</p>}
+
+        <Button onClick={generatePlanWithAI} disabled={isPlanning || promoItems.length === 0} className="w-full bg-pink-600 text-white">{isPlanning ? 'AI กำลังวิเคราะห์ข้อมูล...' : 'วิเคราะห์และวางแผน (Analyze)'}</Button>
+        {!apiKey && <button onClick={onConfigKey} className="text-xs text-red-500 mt-1 w-full text-center hover:underline">*กรุณาตั้งค่า API Key (คลิก)</button>}
       </div>
+
+      {/* Right Panel */}
       <div className="bg-slate-900 text-white rounded-xl flex flex-col relative overflow-hidden min-h-[500px]">
         <div className="flex border-b border-slate-700 bg-slate-900/50">
-            <button onClick={() => setActiveRightTab('plan')} className={`flex-1 py-3 text-sm ${activeRightTab === 'plan' ? 'text-pink-400' : 'text-slate-400'}`}>ผลการคำนวณ</button>
-            <button onClick={() => setActiveRightTab('chat')} className={`flex-1 py-3 text-sm ${activeRightTab === 'chat' ? 'text-pink-400' : 'text-slate-400'}`}>ปรึกษา AI</button>
+            <button onClick={() => setActiveRightTab('plan')} className={`flex-1 py-3 text-sm ${activeRightTab === 'plan' ? 'text-pink-400 border-b-2 border-pink-400' : 'text-slate-400'}`}>แผนกลยุทธ์ (Dashboard)</button>
+            <button onClick={() => setActiveRightTab('chat')} className={`flex-1 py-3 text-sm ${activeRightTab === 'chat' ? 'text-pink-400 border-b-2 border-pink-400' : 'text-slate-400'}`}>ปรึกษา AI</button>
         </div>
+        
         {activeRightTab === 'plan' && aiPlan && (
-            <div className="p-6 overflow-y-auto h-full">
-                <div className="text-center mb-4"><h2 className="text-3xl font-bold">ยอดขายรวม: ฿{aiPlan.summary.totalRevenue.toLocaleString()}</h2><p className="text-slate-400 text-sm">{aiPlan.summary.strategyNote}</p></div>
-                <table className="w-full text-sm text-left text-slate-300"><tbody>{aiPlan.items.map((item, i) => (<tr key={i} className="border-b border-slate-800"><td className="py-2">{item.name}</td><td className="text-red-400">-{item.discountPercent}%</td><td className="text-right">{item.targetUnits} ชิ้น</td></tr>))}</tbody></table>
+            <div className="p-6 overflow-y-auto h-full space-y-5">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-slate-800 p-3 rounded-lg text-center">
+                        <div className="text-xs text-slate-400">ยอดขายคาดการณ์</div>
+                        <div className="text-lg font-bold text-white">฿{aiPlan.kpi_forecast.total_revenue.toLocaleString()}</div>
+                    </div>
+                    <div className="bg-slate-800 p-3 rounded-lg text-center">
+                        <div className="text-xs text-slate-400">กำไรสุทธิ</div>
+                        <div className="text-lg font-bold text-green-400">฿{aiPlan.kpi_forecast.total_profit.toLocaleString()}</div>
+                    </div>
+                    <div className="bg-slate-800 p-3 rounded-lg text-center">
+                        <div className="text-xs text-slate-400">ROI</div>
+                        <div className="text-lg font-bold text-blue-400">{aiPlan.kpi_forecast.roi}x</div>
+                    </div>
+                </div>
+
+                <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                    <h4 className="text-sm font-bold text-pink-300 mb-2 flex items-center gap-2"><Target size={14}/> กลยุทธ์แนะนำ</h4>
+                    <p className="text-xs text-slate-300 leading-relaxed">{aiPlan.executive_summary}</p>
+                </div>
+
+                {/* Item Table */}
+                <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left text-slate-300">
+                        <thead className="text-xs uppercase bg-slate-800 text-slate-400">
+                            <tr>
+                                <th className="px-2 py-2 rounded-l">สินค้า</th>
+                                <th className="px-2 py-2">Role</th>
+                                <th className="px-2 py-2">ส่วนลด</th>
+                                <th className="px-2 py-2">เป้าขาย</th>
+                                <th className="px-2 py-2 rounded-r">Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800">
+                            {aiPlan.items.map((item, i) => (
+                                <tr key={i} className="hover:bg-slate-800/30">
+                                    <td className="px-2 py-3 font-medium text-white">{item.name}</td>
+                                    <td className="px-2 py-3"><span className={`px-1.5 py-0.5 rounded text-[10px] ${item.role === 'Hero' ? 'bg-yellow-500/20 text-yellow-300' : 'bg-blue-500/20 text-blue-300'}`}>{item.role}</span></td>
+                                    <td className="px-2 py-3 text-red-400 font-bold">-{item.recommended_discount}%</td>
+                                    <td className="px-2 py-3 text-white">{item.target_units_total} <span className="text-[10px] text-slate-500">({item.target_units_daily}/วัน)</span></td>
+                                    <td className="px-2 py-3 text-green-400">{item.estimated_margin_percent}%</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         )}
+        
         {activeRightTab === 'chat' && (
             <div className="flex-1 flex flex-col bg-slate-900 h-full">
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">{chatMessages.map((msg, i) => (<div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${msg.role === 'user' ? 'bg-pink-600 text-white' : 'bg-slate-800 text-slate-200'}`}>{msg.text}</div></div>))}<div ref={chatEndRef}/></div>
@@ -523,12 +645,12 @@ const PromoPlanner = ({ apiKey }) => {
 };
 
 // --- Feature 5: Smart Reply ---
-const SmartReply = ({ apiKey }) => {
+const SmartReply = ({ apiKey, onConfigKey }) => {
     const [msg, setMsg] = useState('');
     const [replies, setReplies] = useState([]);
     const [loading, setLoading] = useState(false);
     const gen = async () => {
-        if(!apiKey) return;
+        if(!apiKey) { onConfigKey(); return; }
         setLoading(true);
         const prompt = `Customer said: "${msg}". Generate 3 polite Thai replies for shop. JSON Array of strings.`;
         try { const res = await callGeminiText(prompt, apiKey); if(res) setReplies(JSON.parse(res.replace(/```json|```/g, ''))); } catch(e){} finally { setLoading(false); }
@@ -539,7 +661,7 @@ const SmartReply = ({ apiKey }) => {
                 <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2"><MessageCircle className="w-5 h-5 text-teal-600"/> ช่วยตอบแชท</h3>
                 <textarea className="w-full p-3 border rounded-lg h-32" placeholder="ลูกค้าพิมพ์ว่า..." value={msg} onChange={e=>setMsg(e.target.value)}></textarea>
                 <Button onClick={gen} disabled={loading || !msg} className="w-full bg-teal-600 text-white">{loading ? 'กำลังคิด...' : 'สร้างคำตอบ'}</Button>
-                {!apiKey && <p className="text-xs text-red-500 mt-1">*ต้องใส่ API Key ก่อน</p>}
+                {!apiKey && <button onClick={onConfigKey} className="text-xs text-red-500 mt-1 w-full text-center hover:underline">*กรุณาตั้งค่า API Key (คลิก)</button>}
             </div>
             <div className="bg-slate-50 p-4 rounded-xl border h-full overflow-y-auto space-y-3">
                 {replies.map((r,i)=><div key={i} className="bg-white p-3 rounded shadow-sm text-sm relative group"><p>{r}</p><button onClick={()=>navigator.clipboard.writeText(r)} className="absolute top-2 right-2 text-slate-300 hover:text-teal-600"><Copy size={14}/></button></div>)}
@@ -548,71 +670,351 @@ const SmartReply = ({ apiKey }) => {
     )
 }
 
-// --- Feature 6: Image Generator (Pro) ---
+// --- Feature 6: Image Generator (Pro Mode Restored) ---
 
-const ImageGenerator = ({ apiKey }) => {
+const ImageGenerator = ({ apiKey, onConfigKey }) => {
   const [productName, setProductName] = useState('');
+  const [category, setCategory] = useState('General');
+  const [targetStyle, setTargetStyle] = useState('Minimalist');
+  const [perspective, setPerspective] = useState('Front View');
+  const [selectedPrompt, setSelectedPrompt] = useState('');
+  const [suggestedPrompts, setSuggestedPrompts] = useState([]);
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  
   const [imageResult, setImageResult] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [uploadedImages, setUploadedImages] = useState([]); 
   const [preserveProduct, setPreserveProduct] = useState(true);
-  const [promptStyle, setPromptStyle] = useState('Minimalist');
+
+  // Categories
+  const categories = [
+    { id: 'General', label: 'ทั่วไป' },
+    { id: 'Fashion', label: 'แฟชั่น/เสื้อผ้า' },
+    { id: 'Beauty', label: 'ความงาม/สกินแคร์' },
+    { id: 'Food', label: 'อาหาร/เครื่องดื่ม' },
+    { id: 'Electronics', label: 'อุปกรณ์ไอที' },
+    { id: 'Home', label: 'ของใช้ในบ้าน' },
+    { id: 'Kids', label: 'ของเล่นเด็ก' },
+    { id: 'Luxury', label: 'เครื่องประดับ/แบรนด์เนม' },
+  ];
+
+  // Styles
+  const styles = [
+    { id: 'Minimalist', label: 'มินิมอล (Minimal)' },
+    { id: 'Studio Lighting', label: 'สตูดิโอ (Studio)' },
+    { id: 'Lifestyle', label: 'ไลฟ์สไตล์ (Lifestyle)' },
+    { id: 'In Use', label: 'กำลังใช้งาน (In Use)' },
+    { id: 'Cinematic', label: 'ภาพยนตร์ (Cinematic)' },
+    { id: 'Nature', label: 'ธรรมชาติ (Nature)' },
+    { id: 'Luxury', label: 'หรูหรา (Luxury)' },
+    { id: 'Vibrant/Neon', label: 'สดใส/นีออน (Vibrant)' },
+    { id: 'Industrial', label: 'ดิบเท่ (Industrial)' },
+    { id: 'Vintage', label: 'วินเทจ (Vintage)' },
+    { id: 'Futuristic', label: 'ล้ำยุค (Futuristic)' },
+    { id: 'Pastel', label: 'พาสเทล (Pastel)' },
+  ];
+
+  // Perspectives
+  const perspectives = [
+    { id: 'Front View', label: 'หน้าตรง (Front)' },
+    { id: 'Side View', label: 'ด้านข้าง (Side)' },
+    { id: 'Top Down', label: 'มุมบน (Top View)' },
+    { id: '45 Degree Angle', label: 'มุมเฉียง 45°' },
+    { id: 'Low Angle', label: 'มุมเสย (Low Angle)' },
+    { id: 'Close Up', label: 'ซูมใกล้ (Macro)' },
+    { id: 'Isometric', label: 'ไอโซเมตริก (Iso)' },
+    { id: 'In Context', label: 'ขณะใช้งาน (In Use)' },
+  ];
+
+  const getAiPrompts = async () => {
+    if (!productName.trim()) return;
+    if (!apiKey) { onConfigKey(); return; }
+    setIsSuggesting(true);
+    setSuggestedPrompts([]);
+    setSelectedPrompt('');
+
+    const prompt = `
+      Create 10 high-quality, professional AI image generation prompts for a product: "${productName}".
+      Product Category: "${category}".
+      Target Style/Mood: "${targetStyle}".
+      Perspective/View: "${perspective}".
+      
+      Instructions:
+      - DO NOT include the specific product name "${productName}" in the prompts (make it generic like "the product", "a bottle", etc).
+      - Focus on lighting, background, and atmosphere.
+      - Include technical keywords like "4k", "photorealistic".
+      - Provide Thai translation.
+      
+      Return strictly JSON Array: [{ "en": "...", "th": "..." }, ...]
+    `;
+
+    try {
+        const textResult = await callGeminiText(prompt, apiKey);
+        if (textResult) {
+            const jsonString = textResult.replace(/```json|```/g, '').trim();
+            const prompts = JSON.parse(jsonString);
+            if (Array.isArray(prompts)) setSuggestedPrompts(prompts);
+        }
+    } catch (e) { console.error(e); } finally { setIsSuggesting(false); }
+  };
 
   const generateImage = async () => {
-    if (!productName || !apiKey) return;
-    setIsGenerating(true);
-    const fullPrompt = `${promptStyle} photography of ${productName}, 4k, photorealistic.`;
-    let res = null;
-    if (uploadedImages.length > 0) {
-        let p = fullPrompt;
-        if(preserveProduct) p = `(Strictly preserve main product). ${fullPrompt}`;
-        res = await callGeminiImageToImage(p, uploadedImages, apiKey);
-    } else {
-        res = await callGeminiImage(fullPrompt, apiKey);
+    let activePrompt = selectedPrompt || productName;
+    if (!activePrompt.trim()) activePrompt = productName;
+    
+    // Prepend product name if using Text-to-Image and not present
+    if (uploadedImages.length === 0 && productName && !activePrompt.toLowerCase().includes(productName.toLowerCase())) {
+        activePrompt = `${productName}, ${activePrompt}`;
     }
-    setImageResult(res);
+
+    if (!apiKey) { onConfigKey(); return; }
+    setIsGenerating(true);
+    setImageResult(null);
+
+    let base64Image = null;
+
+    if (uploadedImages.length > 0) {
+        if (preserveProduct) {
+             activePrompt = `(Strictly preserve the main product objects from the input images. Keep the products exactly as is. Compose them naturally into the scene. Only modify the background to be ${activePrompt}).`;
+        }
+        base64Image = await callGeminiImageToImage(activePrompt, uploadedImages, apiKey);
+    } else {
+        base64Image = await callGeminiImage(activePrompt, apiKey);
+    }
+
+    setImageResult(base64Image);
     setIsGenerating(false);
   };
 
-  const handleUpload = (e) => {
-      const files = Array.from(e.target.files);
-      Promise.all(files.map(f => new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(f); }))).then(imgs => setUploadedImages(prev => [...prev, ...imgs]));
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+       Promise.all(files.map(file => new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+       }))).then(results => {
+          setUploadedImages(prev => [...prev, ...results]);
+       });
+    }
+  };
+
+  const removeUploadedImage = (index) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
   }
 
+  const clearUploadedImages = () => {
+    setUploadedImages([]);
+  }
+
+  const downloadImage = () => {
+    if (imageResult) {
+      const link = document.createElement('a');
+      link.href = imageResult;
+      link.download = `product-${Date.now()}.png`;
+      link.click();
+    }
+  };
+
   return (
-      <div className="grid md:grid-cols-2 gap-6 h-full">
-          <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2"><ImageIcon className="w-5 h-5 text-indigo-600"/> สร้างรูปสินค้า</h3>
-              <InputGroup label="รายละเอียดสินค้า" value={productName} onChange={setProductName} />
-              <div className="flex gap-2 mb-2 overflow-x-auto">{['Minimalist', 'Studio', 'Luxury', 'Nature'].map(s => <button key={s} onClick={()=>setPromptStyle(s)} className={`px-3 py-1 text-xs border rounded ${promptStyle===s ? 'bg-indigo-600 text-white' : 'bg-white'}`}>{s}</button>)}</div>
-              <div>
-                  <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed rounded-lg cursor-pointer"><Upload className="w-5 h-5 text-slate-400"/><span className="text-xs text-slate-500">อัปโหลดภาพสินค้า</span><input type="file" hidden multiple onChange={handleUpload}/></label>
-                  {uploadedImages.length > 0 && (
-                      <div className="mt-2">
-                          <div className="flex gap-2 overflow-x-auto pb-2">{uploadedImages.map((img, i) => <img key={i} src={img} className="w-12 h-12 rounded object-cover border"/>)}</div>
-                          <button onClick={()=>setUploadedImages([])} className="text-xs text-red-500">ลบทั้งหมด</button>
-                          <div onClick={()=>setPreserveProduct(!preserveProduct)} className={`mt-2 p-2 border rounded flex items-center gap-2 text-xs cursor-pointer ${preserveProduct ? 'bg-green-50 border-green-200' : ''}`}><Lock size={12}/> ล็อคสินค้าเดิม 100%</div>
-                      </div>
-                  )}
-              </div>
-              <Button onClick={generateImage} disabled={isGenerating || !productName} className="w-full bg-indigo-600 text-white">{isGenerating ? 'กำลังสร้าง...' : 'สร้างรูปภาพ'}</Button>
-              {!apiKey && <p className="text-xs text-red-500 mt-1">*ต้องใส่ API Key ก่อน</p>}
-          </div>
-          <div className="bg-slate-50 rounded-xl border flex items-center justify-center min-h-[300px]">
-              {imageResult ? <img src={imageResult} className="max-w-full max-h-full rounded-lg shadow" /> : <p className="text-slate-400 text-sm">ภาพผลลัพธ์</p>}
-          </div>
+    <div className="grid md:grid-cols-2 gap-6 h-full">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+          <ImageIcon className="w-5 h-5 text-indigo-600" /> สร้างรูปสินค้า (Pro Mode)
+        </h3>
+
+        {/* Step 1: Input Product & Category */}
+        <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 space-y-3">
+            <InputGroup 
+                label="ชื่อสินค้าของคุณ" 
+                value={productName} 
+                onChange={setProductName} 
+                placeholder="เช่น ครีมกันแดด, หูฟังไร้สาย" 
+            />
+            
+            {/* Category Selection */}
+            <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">หมวดหมู่สินค้า</label>
+                <div className="flex flex-wrap gap-2">
+                    {categories.map((cat) => (
+                        <button
+                            key={cat.id}
+                            onClick={() => setCategory(cat.id)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${category === cat.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'}`}
+                        >
+                            {cat.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Style Selection */}
+            <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">สไตล์ภาพ (Mood & Tone)</label>
+                <div className="flex flex-wrap gap-2">
+                    {styles.map((s) => (
+                        <button
+                            key={s.id}
+                            onClick={() => setTargetStyle(s.id)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${targetStyle === s.id ? 'bg-pink-600 text-white border-pink-600' : 'bg-white text-slate-600 border-slate-200 hover:border-pink-300'}`}
+                        >
+                            {s.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Perspective Selection */}
+            <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">มุมมองภาพ (Perspective)</label>
+                <div className="flex flex-wrap gap-2">
+                    {perspectives.map((p) => (
+                        <button
+                            key={p.id}
+                            onClick={() => setPerspective(p.id)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${perspective === p.id ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'}`}
+                        >
+                            {p.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            
+            <Button onClick={getAiPrompts} disabled={isSuggesting || !productName} variant="secondary" className="w-full text-xs bg-white border border-slate-200 hover:bg-slate-50 mt-2">
+                {isSuggesting ? <Loader2 className="animate-spin" size={14}/> : <Wand2 size={14}/>} 
+                {isSuggesting ? 'AI กำลังคิดสูตร...' : 'ขอ 10 สูตร Prompt ยอดนิยม'}
+            </Button>
+        </div>
+
+        {/* Step 2: Select Prompt OR Edit Custom */}
+        {suggestedPrompts.length > 0 && (
+            <div className="space-y-2 animate-fade-in">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">เลือก Prompt ที่ชอบ (มีคำแปลไทย)</label>
+                <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                    {suggestedPrompts.map((p, idx) => (
+                        <div 
+                            key={idx} 
+                            onClick={() => setSelectedPrompt(p.en)}
+                            className={`p-2 rounded border text-xs cursor-pointer transition-all ${selectedPrompt === p.en ? 'bg-indigo-50 border-indigo-500' : 'bg-white border-slate-200 hover:bg-slate-50'}`}
+                        >
+                            <div className="font-medium mb-0.5">{p.th}</div>
+                            <div className="text-[10px] text-slate-400 truncate">{p.en}</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )}
+
+        {/* Manual/Selected Prompt Edit Area */}
+        <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Prompt ภาษาอังกฤษ (ใช้สร้างจริง)</label>
+            <textarea
+                className="w-full p-3 bg-white border border-slate-200 rounded-lg h-20 text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-slate-600"
+                value={selectedPrompt}
+                onChange={(e) => setSelectedPrompt(e.target.value)}
+                placeholder={productName ? `รอเลือก Prompt ด้านบน หรือพิมพ์เอง...` : `ใส่ชื่อสินค้าด้านบนก่อน...`}
+            ></textarea>
+        </div>
+
+        {/* Image Upload Area */}
+        <div>
+            <div className="flex justify-between items-center mb-1">
+                <label className="block text-sm font-medium text-slate-700">ภาพต้นแบบ (Optional)</label>
+                {uploadedImages.length > 0 && <button onClick={clearUploadedImages} className="text-xs text-red-500 hover:underline">ลบทั้งหมด</button>}
+            </div>
+            
+            <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                <div className="flex flex-col items-center justify-center pt-2 pb-2">
+                    <Upload className="w-5 h-5 mb-1 text-slate-400" />
+                    <p className="text-xs text-slate-500">อัปโหลดภาพสินค้า (JPG/PNG)</p>
+                </div>
+                <input type="file" className="hidden" multiple accept="image/*" onChange={handleImageUpload} />
+            </label>
+
+            {/* Uploaded Images Preview */}
+            {uploadedImages.length > 0 && (
+                <div className="flex gap-2 mt-2 overflow-x-auto pb-2">
+                    {uploadedImages.map((img, index) => (
+                        <div key={index} className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-slate-200 group">
+                            <img src={img} alt={`uploaded-${index}`} className="w-full h-full object-cover" />
+                            <button 
+                                onClick={() => removeUploadedImage(index)}
+                                className="absolute top-0.5 right-0.5 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                                <X size={10} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Preserve Product Toggle */}
+            {uploadedImages.length > 0 && (
+            <div 
+                onClick={() => setPreserveProduct(!preserveProduct)}
+                className={`mt-2 flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors border ${preserveProduct ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}
+            >
+                <div className="flex items-center gap-2">
+                    <Lock size={14} className={preserveProduct ? 'text-green-600' : 'text-slate-400'} />
+                    <div className="flex flex-col">
+                        <span className={`text-xs font-medium ${preserveProduct ? 'text-green-700' : 'text-slate-500'}`}>
+                            คงสภาพสินค้าเดิม 100% (Strict Mode)
+                        </span>
+                        <span className="text-[10px] text-slate-400">ห้าม AI เปลี่ยนแปลงตัวสินค้า (ใช้ภาพจริงแปะลงฉาก)</span>
+                    </div>
+                </div>
+                <div className={`w-8 h-4 rounded-full relative transition-colors ${preserveProduct ? 'bg-green-500' : 'bg-slate-300'}`}>
+                    <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${preserveProduct ? 'left-4.5' : 'left-0.5'}`} style={{left: preserveProduct ? '18px' : '2px'}}></div>
+                </div>
+            </div>
+            )}
+        </div>
+
+        <Button onClick={generateImage} disabled={isGenerating || (!selectedPrompt && !productName)} className="w-full bg-gradient-to-r from-indigo-500 to-violet-500 shadow-lg shadow-indigo-200">
+          {isGenerating ? <><Loader2 className="animate-spin" size={16}/> กำลัง{uploadedImages.length > 0 ? 'ดัดแปลง' : 'วาด'}ภาพ...</> : <><Sparkles size={16}/> {uploadedImages.length > 0 ? 'สร้างจากภาพนี้' : 'สร้างรูปใหม่'}</>}
+        </Button>
+        {!apiKey && <button onClick={onConfigKey} className="text-xs text-red-500 mt-1 w-full text-center hover:underline">*กรุณาตั้งค่า API Key ที่มุมขวาบน</button>}
       </div>
-  )
-}
+
+      {/* Result Area */}
+      <div className="bg-slate-50 rounded-xl border border-slate-200 flex flex-col items-center justify-center p-4 min-h-[400px] relative overflow-hidden">
+        {imageResult ? (
+          <div className="relative group w-full h-full flex items-center justify-center">
+            <img src={imageResult} alt="Generated Product" className="max-w-full max-h-full object-contain rounded-lg shadow-md animate-fade-in" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg pointer-events-none">
+               <button onClick={downloadImage} className="pointer-events-auto bg-white text-slate-800 px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-slate-100">
+                 <Download size={16} /> ดาวน์โหลด
+               </button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center text-slate-400 opacity-60">
+             {isGenerating ? (
+               <div className="flex flex-col items-center animate-pulse">
+                 <Sparkles size={48} className="mb-2 text-indigo-400" />
+                 <p>AI กำลังสร้างสรรค์ผลงาน...</p>
+               </div>
+             ) : (
+               <>
+                 <ImageIcon size={48} className="mb-2 mx-auto" />
+                 <p>เลือกสูตร Prompt แล้วกดสร้าง<br/>เพื่อดูรูปสินค้าของคุณ</p>
+               </>
+             )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // --- Feature 7: Video Script ---
 
-const VideoScriptGenerator = ({ apiKey }) => {
+const VideoScriptGenerator = ({ apiKey, onConfigKey }) => {
     const [product, setProduct] = useState('');
     const [script, setScript] = useState('');
     const [loading, setLoading] = useState(false);
     const gen = async () => {
-        if(!apiKey) return;
+        if(!apiKey) { onConfigKey(); return; }
         setLoading(true);
         const prompt = `Write a viral TikTok script for "${product}". Thai language. Table format: Time | Visual | Audio.`;
         try { const res = await callGeminiText(prompt, apiKey); setScript(res); } catch(e){} finally { setLoading(false); }
@@ -623,7 +1025,7 @@ const VideoScriptGenerator = ({ apiKey }) => {
                 <h3 className="text-lg font-semibold flex items-center gap-2"><Video className="w-5 h-5 text-red-500"/> เขียนบทวิดีโอ</h3>
                 <InputGroup label="สินค้า" value={product} onChange={setProduct} />
                 <Button onClick={gen} disabled={loading || !product} className="w-full bg-red-600 text-white">{loading ? '...' : 'เขียนบท'}</Button>
-                {!apiKey && <p className="text-xs text-red-500 mt-1">*ต้องใส่ API Key ก่อน</p>}
+                {!apiKey && <button onClick={onConfigKey} className="text-xs text-red-500 mt-1 w-full text-center hover:underline">*กรุณาตั้งค่า API Key (คลิก)</button>}
             </div>
             <div className="bg-slate-50 p-4 rounded-xl border h-full overflow-y-auto whitespace-pre-wrap text-sm text-slate-700">{script || 'รอผลลัพธ์...'}</div>
         </div>
@@ -703,12 +1105,12 @@ export default function App() {
         <div className="animate-fade-in-up">
           <Card className="p-6 md:p-8 min-h-[500px]">
             {activeTab === 'pricing' && <PriceCalculator />}
-            {activeTab === 'promo' && <PromoPlanner apiKey={apiKey} />}
-            {activeTab === 'content' && <ContentGenerator apiKey={apiKey} />}
-            {activeTab === 'ads' && <AdOptimizer apiKey={apiKey} />}
-            {activeTab === 'reply' && <SmartReply apiKey={apiKey} />}
-            {activeTab === 'image' && <ImageGenerator apiKey={apiKey} />}
-            {activeTab === 'video' && <VideoScriptGenerator apiKey={apiKey} />}
+            {activeTab === 'promo' && <PromoPlanner apiKey={apiKey} onConfigKey={() => setShowKeyInput(true)} />}
+            {activeTab === 'content' && <ContentGenerator apiKey={apiKey} onConfigKey={() => setShowKeyInput(true)} />}
+            {activeTab === 'ads' && <AdOptimizer apiKey={apiKey} onConfigKey={() => setShowKeyInput(true)} />}
+            {activeTab === 'reply' && <SmartReply apiKey={apiKey} onConfigKey={() => setShowKeyInput(true)} />}
+            {activeTab === 'image' && <ImageGenerator apiKey={apiKey} onConfigKey={() => setShowKeyInput(true)} />}
+            {activeTab === 'video' && <VideoScriptGenerator apiKey={apiKey} onConfigKey={() => setShowKeyInput(true)} />}
           </Card>
         </div>
 
